@@ -6,6 +6,7 @@ using namespace std;
 // Declaración de yylex para el compilador
 int yylex();
 void yyerror(const char* s);
+int count = 1;
 %}
 
 %token NUMBER
@@ -15,19 +16,18 @@ void yyerror(const char* s);
 %%
 input:
     | input line
+    | input err_semicolon
     ;
 
 line:
-    '\n'
-    | expression END_LINE '\n'  { cout << "Result: " << $1 << endl; }
+    '\n' { count++; }
     | expression END_LINE  { cout << "Result: " << $1 << endl; }
-    | PRINT expression END_LINE '\n'  { cout << "Print: " << $2 << endl; }
     | PRINT expression END_LINE  { cout << "Print: " << $2 << endl; }
     ;
 
 err_semicolon:
-    | expression '\n' { cout << "Error: Falta el punto y coma" << endl; }
-    | PRINT expression '\n' { cout << "Error: Falta el punto y coma" << endl; }
+    | expression { cout << "Error: Falta el punto y coma en la linea " << count << endl; }
+    | PRINT expression { cout << "Error: Falta el punto y coma en la linea " << count << endl; }
     ;
 
 expression:

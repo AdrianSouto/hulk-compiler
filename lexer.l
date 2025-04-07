@@ -1,6 +1,7 @@
 %{
 #include "parser.hpp"
 #include <cstdio>
+#include <cstring>
 
 int yylex();
 %}

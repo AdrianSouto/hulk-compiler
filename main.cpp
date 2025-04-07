@@ -13,7 +13,6 @@ int main(int argc, char* argv[]) {
         std::cerr << "Error opening file: " << filename << std::endl;
         return 1;
     }
-
     yyparse();
 
     fclose(yyin);
