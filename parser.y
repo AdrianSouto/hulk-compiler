@@ -1,6 +1,8 @@
 %{
 #include <iostream>
 #include <string>
+#include <cmath>
+
 using namespace std;
 
 // Declaración de yylex para el compilador
@@ -11,28 +13,45 @@ int count = 1;
 
 %token NUMBER
 %token PRINT
-%token END_LINE
+%token EOL
+
+%token LPAREN RPAREN
+%token PLUS MINUS MULTIPLY DIVIDE POWER SEMICOLON
+
+%left PLUS MINUS
+%left MULTIPLY DIVIDE
+%right POWER
+%left LPAREN RPAREN
 
 %%
-input:
-    | input line
-    | input err_semicolon
+
+program:
+    statement_list
     ;
 
-line:
-    '\n' { count++; }
-    | expression END_LINE  { cout << "Result: " << $1 << endl; }
-    | PRINT expression END_LINE  { cout << "Print: " << $2 << endl; }
+statement_list:
+    statement_list statement EOL
+    statement_list statement
+    | statement EOL
+    | statement
+    | EOL { count++; }
     ;
 
-err_semicolon:
-    | expression { cout << "Error: Falta el punto y coma en la linea " << count << endl; }
-    | PRINT expression { cout << "Error: Falta el punto y coma en la linea " << count << endl; }
+statement:
+    PRINT expression SEMICOLON { { cout << "Print: " << $2 << endl; } }
+    | expression SEMICOLON { cout << "Resultado: " << $1 << endl;  }
     ;
 
 expression:
-    NUMBER  { $$ = $1; }
+    NUMBER { $$ = $1; }
+    | LPAREN expression RPAREN { $$ = $2; }
+    | expression PLUS expression { $$ = $1 + $3; }
+    | expression MINUS expression { $$ = $1 - $3; }
+    | expression MULTIPLY expression { $$ = $1 * $3; }
+    | expression DIVIDE expression { $$ = $1 / $3; }
+    | expression POWER expression { $$ = pow($1, $3); }
     ;
+
 
 %%
 void yyerror(const char* s) {
