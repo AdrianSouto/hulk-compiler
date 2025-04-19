@@ -9,8 +9,8 @@ int yylex();
 %option noyywrap
 
 %%
-[0-9]+  { yylval = atoi(yytext); return NUMBER; }
-print   { return PRINT; }
+[0-9]+  { yylval = atoi(yytext);printf("NUMBER\n"); return NUMBER; }
+print   {printf("PRINT\n"); return PRINT; }
 \n      { return EOL; }
 [ \t]   { /* ignore whitespace */ }
 ;       { return SEMICOLON; }

@@ -53,11 +53,26 @@ expression:
         NumberNode* right = new NumberNode($3);
         currentNode = new BinaryOperatorNode('+', left, right);
      }
-    | expression MINUS expression { $$ = $1 - $3; }
-    | expression MULTIPLY expression { $$ = $1 * $3; }
-    | expression DIVIDE expression { $$ = $1 / $3; }
-    | expression POWER expression { $$ = pow($1, $3); }
-    ;
+    | expression MINUS expression { $$ = $1 - $3;
+        NumberNode* left = new NumberNode($1);
+        NumberNode* right = new NumberNode($3);
+        currentNode = new BinaryOperatorNode('-', left, right);
+     }
+    | expression MULTIPLY expression { $$ = $1 * $3;
+            NumberNode* left = new NumberNode($1);
+            NumberNode* right = new NumberNode($3);
+            currentNode = new BinaryOperatorNode('*', left, right);
+         }
+    | expression DIVIDE expression { $$ = $1 / $3;
+                NumberNode* left = new NumberNode($1);
+                NumberNode* right = new NumberNode($3);
+                currentNode = new BinaryOperatorNode('/', left, right);
+             }
+    | expression POWER expression { $$ = pow($1, $3);
+                    NumberNode* left = new NumberNode($1);
+                    NumberNode* right = new NumberNode($3);
+                    currentNode = new BinaryOperatorNode('^', left, right);
+                 }
 
 
 %%
