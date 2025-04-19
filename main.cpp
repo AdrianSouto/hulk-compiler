@@ -1,9 +1,11 @@
 #include <iostream>
 #include <fstream>
 #include "parser.hpp"
-//Hola
+#include "../ASTNode.cpp"
+
 extern FILE* yyin;
 extern int yyparse();
+extern BinaryOperatorNode* currentNode;
 
 int main(int argc, char* argv[]) {
     const char* filename = "../input.txt";
@@ -14,6 +16,12 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     yyparse();
+
+    if (currentNode) {
+        currentNode->print();
+    } else {
+        std::cout << "currentNode es nulo." << std::endl;
+    }
 
     fclose(yyin);
     return 0;

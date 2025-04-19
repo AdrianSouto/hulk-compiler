@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 #include <cmath>
+#include "../ASTNode.cpp"
 
 using namespace std;
 
@@ -9,6 +10,7 @@ using namespace std;
 int yylex();
 void yyerror(const char* s);
 int count = 1;
+extern BinaryOperatorNode* currentNode = nullptr;
 %}
 
 %token NUMBER
@@ -45,7 +47,12 @@ statement:
 expression:
     NUMBER { $$ = $1; }
     | LPAREN expression RPAREN { $$ = $2; }
-    | expression PLUS expression { $$ = $1 + $3; }
+    | expression PLUS expression {
+        $$ = $1 + $3;
+        NumberNode* left = new NumberNode($1);
+        NumberNode* right = new NumberNode($3);
+        currentNode = new BinaryOperatorNode('+', left, right);
+     }
     | expression MINUS expression { $$ = $1 - $3; }
     | expression MULTIPLY expression { $$ = $1 * $3; }
     | expression DIVIDE expression { $$ = $1 / $3; }

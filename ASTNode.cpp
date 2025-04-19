@@ -1,38 +1,63 @@
-#include "ASTNode.hpp"
-#include "ASTVisitor.hpp"
+#include <string.h>
+#include <iostream>
 
-ASTNode* ASTNode::root = nullptr;
+class NumberNode {
+public:
+    int value;
 
-BinaryOperation::BinaryOperation(Expression* left, const std::string& op, Expression* right)
-    : left(left), right(right), op(op) {}
+    NumberNode(int val) : value(val) {}
 
-void BinaryOperation::accept(Visitor& visitor) {
-    visitor.visit(*this);
-}
+    int getValue() const {
+        return value;
+    }
 
-NumberLiteral::NumberLiteral(double value) : value(value) {}
+    void print() const {
+        std::cout << "Number: " << getValue() << std::endl;
+    }
+};
 
-void NumberLiteral::accept(Visitor& visitor) {
-    visitor.visit(*this);
-}
+class BinaryOperatorNode {
+public:
+    char op;
+    NumberNode* left;
+    NumberNode* right;
 
-PrintStatement::PrintStatement(Expression* expr) : expression(expr) {}
+    BinaryOperatorNode(char op, NumberNode* left, NumberNode* right) : op(op), left(left), right(right) {}
 
-void PrintStatement::accept(Visitor& visitor) {
-    visitor.visit(*this);
-}
+    int evaluate() const {
+        switch (op) {
+            case '+': return left->getValue() + right->getValue();
+            case '-': return left->getValue() - right->getValue();
+            case '*': return left->getValue() * right->getValue();
+            case '/': return left->getValue() / right->getValue();
+            default: return 0;
+        }
+    }
 
-ExpressionStatement::ExpressionStatement(Expression* expr) : expression(expr) {}
+    void print(int indent = 0) const {
+        for (int i = 0; i < indent; ++i) {
+            std::cout << "  ";
+        }
+        std::cout << "Result:" << evaluate() << std::endl;
+        std::cout << "Operator: " << op << std::endl;
+        for (int i = 0; i < indent + 1; ++i) {
+            std::cout << "  ";
+        }
+        if (left) {
 
-void ExpressionStatement::accept(Visitor& visitor) {
-    visitor.visit(*this);
-}
-
-// Implementación de funciones de ayuda
-Expression* makeNumber(double value) {
-    return new NumberLiteral(value);
-}
-
-Expression* makeBinaryOp(Expression* left, const std::string& op, Expression* right) {
-    return new BinaryOperation(left, op, right);
-}
+            std::cout << "Left: ";
+            left->print();
+        } else {
+            std::cout << "Left: nullptr" << std::endl;
+        }
+        for (int i = 0; i < indent + 1; ++i) {
+            std::cout << "  ";
+        }
+        if (right) {
+            std::cout << "Right: ";
+            right->print();
+        } else {
+            std::cout << "Right: nullptr" << std::endl;
+        }
+    }
+};
