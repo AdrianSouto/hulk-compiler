@@ -7,10 +7,10 @@ public:
     virtual ~ASTNode() = default; // Destructor virtual
 };
 
-class ExpresionNode : public ASTNode {
+class ExpressionNode : public ASTNode {
 public:
     virtual int evaluate() const = 0;
-    ~ExpresionNode() override = default;
+    ~ExpressionNode() override = default;
 };
 class StatementNode : public ASTNode {
 public:
@@ -18,7 +18,7 @@ public:
     ~StatementNode() override = default;
 };
 
-class NumberNode : public ExpresionNode {
+class NumberNode : public ExpressionNode {
 public:
     int value;
 
@@ -36,13 +36,13 @@ public:
     }
 };
 
-class BinaryOperatorNode : public ExpresionNode {
+class BinaryOperatorNode : public ExpressionNode {
 public:
     char op;
-    ExpresionNode* left;
-    ExpresionNode* right;
+    ExpressionNode* left;
+    ExpressionNode* right;
 
-    BinaryOperatorNode(char op, ExpresionNode* left, ExpresionNode* right) : op(op), left(left), right(right) {}
+    BinaryOperatorNode(char op, ExpressionNode* left, ExpressionNode* right) : op(op), left(left), right(right) {}
 
     int evaluate() const override {
         switch (op) {
@@ -88,9 +88,9 @@ public:
 };
 class PrintStatementNode : public StatementNode {
 public:
-    ExpresionNode* expression;
+    ExpressionNode* expression;
 
-    PrintStatementNode(ExpresionNode* expr) : expression(expr) {}
+    PrintStatementNode(ExpressionNode* expr) : expression(expr) {}
 
     void execute() const override {
         std::cout << "Print: " << expression->evaluate() << std::endl;
