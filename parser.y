@@ -51,29 +51,26 @@ expression:
         $$ = $1 + $3;
         NumberNode* left = new NumberNode($1);
         NumberNode* right = new NumberNode($3);
-        currentNode = new BinaryOperatorNode('+', left, right);
+        currentNode = new AdditionNode(left, right);
      }
-    | expression MINUS expression { $$ = $1 - $3;
+    | expression MINUS expression {
+        $$ = $1 - $3;
         NumberNode* left = new NumberNode($1);
         NumberNode* right = new NumberNode($3);
-        currentNode = new BinaryOperatorNode('-', left, right);
+        currentNode = new SubtractionNode(left, right);
      }
-    | expression MULTIPLY expression { $$ = $1 * $3;
-            NumberNode* left = new NumberNode($1);
-            NumberNode* right = new NumberNode($3);
-            currentNode = new BinaryOperatorNode('*', left, right);
-         }
-    | expression DIVIDE expression { $$ = $1 / $3;
-                NumberNode* left = new NumberNode($1);
-                NumberNode* right = new NumberNode($3);
-                currentNode = new BinaryOperatorNode('/', left, right);
-             }
-    | expression POWER expression { $$ = pow($1, $3);
-                    NumberNode* left = new NumberNode($1);
-                    NumberNode* right = new NumberNode($3);
-                    currentNode = new BinaryOperatorNode('^', left, right);
-                 }
-
+    | expression MULTIPLY expression {
+        $$ = $1 * $3;
+        NumberNode* left = new NumberNode($1);
+        NumberNode* right = new NumberNode($3);
+        currentNode = new MultiplicationNode(left, right);
+     }
+    | expression DIVIDE expression {
+        $$ = $1 / $3;
+        NumberNode* left = new NumberNode($1);
+        NumberNode* right = new NumberNode($3);
+        currentNode = new DivisionNode(left, right);
+     }
 
 %%
 void yyerror(const char* s) {

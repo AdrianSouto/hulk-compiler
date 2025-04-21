@@ -38,27 +38,19 @@ public:
 
 class BinaryOperatorNode : public ExpressionNode {
 public:
-    char op;
     ExpressionNode* left;
     ExpressionNode* right;
 
-    BinaryOperatorNode(char op, ExpressionNode* left, ExpressionNode* right) : op(op), left(left), right(right) {}
+    BinaryOperatorNode(ExpressionNode* left, ExpressionNode* right)
+        : left(left), right(right) {}
 
-    int evaluate() const override {
-        switch (op) {
-            case '+': return left->evaluate() + right->evaluate();
-            case '-': return left->evaluate() - right->evaluate();
-            case '*': return left->evaluate() * right->evaluate();
-            case '/': return left->evaluate() / right->evaluate();
-            default: return 0;
-        }
-    }
+    virtual char getOperator() const = 0;
 
     void print(int indent = 0) const override {
         for (int i = 0; i < indent; ++i) {
             std::cout << "  ";
         }
-        std::cout << "Operator: " << op << std::endl;
+        std::cout << "Operator: " << getOperator() << std::endl;
 
         for (int i = 0; i < indent + 1; ++i) {
             std::cout << "  ";
@@ -86,6 +78,63 @@ public:
         delete right;
     }
 };
+
+class AdditionNode : public BinaryOperatorNode {
+public:
+    AdditionNode(ExpressionNode* left, ExpressionNode* right)
+        : BinaryOperatorNode(left, right) {}
+
+    int evaluate() const override {
+        return left->evaluate() + right->evaluate();
+    }
+
+    char getOperator() const override {
+        return '+';
+    }
+};
+
+class SubtractionNode : public BinaryOperatorNode {
+public:
+    SubtractionNode(ExpressionNode* left, ExpressionNode* right)
+        : BinaryOperatorNode(left, right) {}
+
+    int evaluate() const override {
+        return left->evaluate() - right->evaluate();
+    }
+
+    char getOperator() const override {
+        return '-';
+    }
+};
+
+class MultiplicationNode : public BinaryOperatorNode {
+public:
+    MultiplicationNode(ExpressionNode* left, ExpressionNode* right)
+        : BinaryOperatorNode(left, right) {}
+
+    int evaluate() const override {
+        return left->evaluate() * right->evaluate();
+    }
+
+    char getOperator() const override {
+        return '*';
+    }
+};
+
+class DivisionNode : public BinaryOperatorNode {
+public:
+    DivisionNode(ExpressionNode* left, ExpressionNode* right)
+        : BinaryOperatorNode(left, right) {}
+
+    int evaluate() const override {
+        return left->evaluate() / right->evaluate();
+    }
+
+    char getOperator() const override {
+        return '/';
+    }
+};
+
 class PrintStatementNode : public StatementNode {
 public:
     ExpressionNode* expression;
