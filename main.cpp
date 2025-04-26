@@ -1,11 +1,13 @@
+#include "ASTNode.hpp"
+
 #include <iostream>
 #include <fstream>
+#include <vector> // Agregado para manejar el vector de nodos
 #include "parser.hpp"
-#include "../ASTNode.cpp"
 
 extern FILE* yyin;
 extern int yyparse();
-extern BinaryOperatorNode* currentNode;
+extern std::vector<StatementNode*> root; // Cambiado a vector de StatementNode
 
 int main(int argc, char* argv[]) {
     const char* filename = "../input.txt";
@@ -17,10 +19,15 @@ int main(int argc, char* argv[]) {
     }
     yyparse();
 
-    if (currentNode) {
-        currentNode->print();
+    if (!root.empty()) {
+        for (const auto& statement : root) {
+            if (statement) {
+                statement->print();
+                statement->execute(); // Ejecutar cada nodo
+            }
+        }
     } else {
-        std::cout << "currentNode es nulo." << std::endl;
+        std::cout << "root está vacío." << std::endl;
     }
 
     fclose(yyin);

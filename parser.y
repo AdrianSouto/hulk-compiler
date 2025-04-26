@@ -1,8 +1,9 @@
 %{
+#include "ASTNode.hpp" // Agregado para definir ExpressionNode
 #include <iostream>
 #include <string>
 #include <cmath>
-#include "../ASTNode.cpp"
+#include <vector> // Agregado para usar std::vector
 
 using namespace std;
 
@@ -10,20 +11,28 @@ using namespace std;
 int yylex();
 void yyerror(const char* s);
 int count = 1;
-extern BinaryOperatorNode* currentNode = nullptr;
+std::vector<StatementNode*> root; // Cambiado a vector de StatementNode
 %}
 
-%token NUMBER
+%token<number> NUMBER
 %token PRINT
 %token EOL
 
 %token LPAREN RPAREN
 %token PLUS MINUS MULTIPLY DIVIDE POWER SEMICOLON
 
+%union{
+    int number;
+    ExpressionNode* expression;
+    StatementNode* statement;
+}
+
 %left PLUS MINUS
 %left MULTIPLY DIVIDE
 %right POWER
 %left LPAREN RPAREN
+%type<expression> expression
+%type<statement> statement
 
 %%
 
@@ -32,44 +41,31 @@ program:
     ;
 
 statement_list:
-    statement_list statement EOL
-    statement_list statement
-    | statement EOL
-    | statement
+    statement_list statement EOL { root.push_back($2); }
+    | statement_list statement { root.push_back($2); }
+    | statement EOL { root.push_back($1); }
+    | statement { root.push_back($1); }
     | EOL { count++; }
     ;
 
 statement:
-    PRINT expression SEMICOLON { { cout << "Print: " << $2 << endl; } }
-    | expression SEMICOLON { cout << "Resultado: " << $1 << endl;  }
+    PRINT expression SEMICOLON { $$ = new PrintStatementNode($2); }
     ;
 
 expression:
-    NUMBER { $$ = $1; }
+    NUMBER { $$ = new NumberNode($1); }
     | LPAREN expression RPAREN { $$ = $2; }
     | expression PLUS expression {
-        $$ = $1 + $3;
-        NumberNode* left = new NumberNode($1);
-        NumberNode* right = new NumberNode($3);
-        currentNode = new AdditionNode(left, right);
+        $$ = new AdditionNode($1, $3);
      }
     | expression MINUS expression {
-        $$ = $1 - $3;
-        NumberNode* left = new NumberNode($1);
-        NumberNode* right = new NumberNode($3);
-        currentNode = new SubtractionNode(left, right);
+        $$ = new SubtractionNode($1, $3);
      }
     | expression MULTIPLY expression {
-        $$ = $1 * $3;
-        NumberNode* left = new NumberNode($1);
-        NumberNode* right = new NumberNode($3);
-        currentNode = new MultiplicationNode(left, right);
+        $$ = new MultiplicationNode($1, $3);
      }
     | expression DIVIDE expression {
-        $$ = $1 / $3;
-        NumberNode* left = new NumberNode($1);
-        NumberNode* right = new NumberNode($3);
-        currentNode = new DivisionNode(left, right);
+        $$ = new DivisionNode($1, $3);
      }
 
 %%
