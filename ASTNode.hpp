@@ -2,6 +2,7 @@
 #define ASTNODE_HPP
 
 #include <iostream>
+#include <vector>
 
 class ASTNode {
 public:
@@ -87,6 +88,26 @@ public:
     void print(int indent = 0) const override;
 
     ~PrintStatementNode();
+};
+
+class Program {
+public:
+    std::vector<StatementNode*> Statements;
+
+    void execute() const {
+        for (const auto& statement : Statements) {
+            if (statement) {
+                statement->print();
+                statement->execute();
+            }
+        }
+    }
+
+    ~Program() {
+        for (auto statement : Statements) {
+            delete statement;
+        }
+    }
 };
 
 #endif
