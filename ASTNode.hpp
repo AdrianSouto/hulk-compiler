@@ -94,20 +94,8 @@ class Program {
 public:
     std::vector<StatementNode*> Statements;
 
-    void execute() const {
-        for (const auto& statement : Statements) {
-            if (statement) {
-                statement->print();
-                statement->execute();
-            }
-        }
-    }
-
-    ~Program() {
-        for (auto statement : Statements) {
-            delete statement;
-        }
-    }
+    void execute() const;
+    ~Program();
 };
 
 #endif

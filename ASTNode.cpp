@@ -110,3 +110,18 @@ void BinaryOperatorNode::print(int indent) const {
         std::cout << "nullptr" << std::endl;
     }
 }
+
+void Program::execute() const {
+    for (const auto& statement : Statements) {
+        if (statement) {
+            statement->print();
+            statement->execute();
+        }
+    }
+}
+
+Program::~Program() {
+    for (auto statement : Statements) {
+        delete statement;
+    }
+}
