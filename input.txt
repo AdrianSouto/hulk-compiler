@@ -1,2 +1,2 @@
-print 2+3;
-print 6-3;
+function square(x) => x * x;
+let num = 5 in print square(num);

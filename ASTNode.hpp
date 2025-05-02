@@ -2,7 +2,9 @@
 #define ASTNODE_HPP
 
 #include <iostream>
+#include <map>
 #include <vector>
+#include <string>
 
 class ASTNode {
 public:
@@ -13,6 +15,7 @@ public:
 class ExpressionNode : public ASTNode {
 public:
     virtual int evaluate() const = 0;
+    virtual std::string evaluateString() const { return std::to_string(evaluate()); }
     ~ExpressionNode() override = default;
 };
 
@@ -29,6 +32,28 @@ public:
     NumberNode(int val);
 
     int evaluate() const override;
+    void print(int indent = 0) const override;
+};
+
+class StringLiteralNode : public ExpressionNode {
+public:
+    std::string value;
+
+    StringLiteralNode(const std::string& val);
+
+    int evaluate() const override;
+    std::string evaluateString() const override;
+    void print(int indent = 0) const override;
+};
+
+class VariableNode : public ExpressionNode {
+public:
+    std::string identifier;
+
+    VariableNode(const std::string& id);
+
+    int evaluate() const override;
+    std::string evaluateString() const override;
     void print(int indent = 0) const override;
 };
 
@@ -78,6 +103,27 @@ public:
     char getOperator() const override;
 };
 
+class ConcatenationNode : public BinaryOperatorNode {
+public:
+    ConcatenationNode(ExpressionNode* left, ExpressionNode* right);
+
+    int evaluate() const override;
+    std::string evaluateString() const override;
+    char getOperator() const override;
+};
+
+class FuncCallNode : public ExpressionNode {
+public:
+    std::string identifier;
+    std::vector<ExpressionNode*> args;
+
+    FuncCallNode(const std::string& id, const std::vector<ExpressionNode*>& arguments);
+
+    int evaluate() const override;
+    void print(int indent = 0) const override;
+    ~FuncCallNode();
+};
+
 class PrintStatementNode : public StatementNode {
 public:
     ExpressionNode* expression;
@@ -89,6 +135,36 @@ public:
 
     ~PrintStatementNode();
 };
+
+class LetVarNode : public StatementNode {
+public:
+    std::string identifier;
+    ExpressionNode* expr;
+    StatementNode* body;
+
+    LetVarNode(const std::string& id, ExpressionNode* expr, StatementNode* body);
+
+    void execute() const override;
+    void print(int indent = 0) const override;
+    ~LetVarNode();
+};
+
+class DefFuncNode : public StatementNode {
+public:
+    std::string identifier;
+    std::vector<std::string> arguments;
+    ExpressionNode* expr;
+
+    DefFuncNode(const std::string& id, const std::vector<std::string>& args, ExpressionNode* expr);
+
+    void execute() const override;
+    void print(int indent = 0) const override;
+    ~DefFuncNode();
+};
+
+// Global symbol tables for variables and functions
+extern std::map<std::string, std::string> variables;
+extern std::map<std::string, std::pair<std::vector<std::string>, ExpressionNode*>> functions;
 
 class Program {
 public:

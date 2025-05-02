@@ -1,5 +1,10 @@
 #include "ASTNode.hpp"
 #include <iostream>
+#include <map>
+
+// Global symbol tables
+std::map<std::string, std::string> variables;
+std::map<std::string, std::pair<std::vector<std::string>, ExpressionNode*>> functions;
 
 NumberNode::NumberNode(int val) : value(val) {}
 
@@ -124,4 +129,192 @@ Program::~Program() {
     for (auto statement : Statements) {
         delete statement;
     }
+}
+
+StringLiteralNode::StringLiteralNode(const std::string& val) : value(val) {}
+
+int StringLiteralNode::evaluate() const {
+    try {
+        return std::stoi(value);
+    } catch(...) {
+        return 0;
+    }
+}
+
+std::string StringLiteralNode::evaluateString() const {
+    return value;
+}
+
+void StringLiteralNode::print(int indent) const {
+    for (int i = 0; i < indent; ++i) {
+        std::cout << "  ";
+    }
+    std::cout << "String: \"" << value << "\"" << std::endl;
+}
+
+VariableNode::VariableNode(const std::string& id) : identifier(id) {}
+
+int VariableNode::evaluate() const {
+    if (variables.find(identifier) != variables.end()) {
+        try {
+            return std::stoi(variables[identifier]);
+        } catch(...) {
+            return 0;
+        }
+    }
+    std::cerr << "Error: Variable '" << identifier << "' not defined." << std::endl;
+    return 0;
+}
+
+std::string VariableNode::evaluateString() const {
+    if (variables.find(identifier) != variables.end()) {
+        return variables[identifier];
+    }
+    std::cerr << "Error: Variable '" << identifier << "' not defined." << std::endl;
+    return "";
+}
+
+void VariableNode::print(int indent) const {
+    for (int i = 0; i < indent; ++i) {
+        std::cout << "  ";
+    }
+    std::cout << "Variable: " << identifier << std::endl;
+}
+
+ConcatenationNode::ConcatenationNode(ExpressionNode* left, ExpressionNode* right)
+    : BinaryOperatorNode(left, right) {}
+
+int ConcatenationNode::evaluate() const {
+    return 0;
+}
+
+std::string ConcatenationNode::evaluateString() const {
+    return left->evaluateString() + right->evaluateString();
+}
+
+char ConcatenationNode::getOperator() const {
+    return '@';
+}
+
+FuncCallNode::FuncCallNode(const std::string& id, const std::vector<ExpressionNode*>& arguments)
+    : identifier(id), args(arguments) {}
+
+int FuncCallNode::evaluate() const {
+    if (functions.find(identifier) != functions.end()) {
+        auto& func = functions[identifier];
+        
+        std::map<std::string, std::string> origValues;
+        for (size_t i = 0; i < func.first.size() && i < args.size(); ++i) {
+            std::string argName = func.first[i];
+            if (variables.find(argName) != variables.end()) {
+                origValues[argName] = variables[argName];
+            }
+            variables[argName] = args[i]->evaluateString();
+        }
+
+        int result = func.second->evaluate();
+
+        for (const auto& pair : origValues) {
+            variables[pair.first] = pair.second;
+        }
+
+        return result;
+    }
+    std::cerr << "Error: Function '" << identifier << "' not defined." << std::endl;
+    return 0;
+}
+
+void FuncCallNode::print(int indent) const {
+    for (int i = 0; i < indent; ++i) {
+        std::cout << "  ";
+    }
+    std::cout << "FunctionCall: " << identifier << "()" << std::endl;
+    for (size_t i = 0; i < args.size(); ++i) {
+        for (int j = 0; j < indent + 1; ++j) {
+            std::cout << "  ";
+        }
+        std::cout << "Arg " << i << ": ";
+        args[i]->print(indent + 2);
+    }
+}
+
+FuncCallNode::~FuncCallNode() {
+    for (auto arg : args) {
+        delete arg;
+    }
+}
+
+LetVarNode::LetVarNode(const std::string& id, ExpressionNode* e, StatementNode* b)
+    : identifier(id), expr(e), body(b) {}
+
+void LetVarNode::execute() const {
+    std::string oldValue;
+    bool hadValue = false;
+    if (variables.find(identifier) != variables.end()) {
+        oldValue = variables[identifier];
+        hadValue = true;
+    }
+
+    variables[identifier] = expr->evaluateString();
+
+    body->execute();
+
+    if (hadValue) {
+        variables[identifier] = oldValue;
+    } else {
+        variables.erase(identifier);
+    }
+}
+
+void LetVarNode::print(int indent) const {
+    for (int i = 0; i < indent; ++i) {
+        std::cout << "  ";
+    }
+    std::cout << "LetVar: " << identifier << std::endl;
+    
+    for (int i = 0; i < indent + 1; ++i) {
+        std::cout << "  ";
+    }
+    std::cout << "Value: ";
+    expr->print(indent + 2);
+    
+    for (int i = 0; i < indent + 1; ++i) {
+        std::cout << "  ";
+    }
+    std::cout << "Body: ";
+    body->print(indent + 2);
+}
+
+LetVarNode::~LetVarNode() {
+    delete expr;
+    delete body;
+}
+
+DefFuncNode::DefFuncNode(const std::string& id, const std::vector<std::string>& args, ExpressionNode* e)
+    : identifier(id), arguments(args), expr(e) {}
+
+void DefFuncNode::execute() const {
+    functions[identifier] = std::make_pair(arguments, expr);
+}
+
+void DefFuncNode::print(int indent) const {
+    for (int i = 0; i < indent; ++i) {
+        std::cout << "  ";
+    }
+    std::cout << "DefFunc: " << identifier << "(";
+    for (size_t i = 0; i < arguments.size(); ++i) {
+        std::cout << arguments[i];
+        if (i < arguments.size() - 1) std::cout << ", ";
+    }
+    std::cout << ")" << std::endl;
+    
+    for (int i = 0; i < indent + 1; ++i) {
+        std::cout << "  ";
+    }
+    std::cout << "Body: ";
+    expr->print(indent + 2);
+}
+
+DefFuncNode::~DefFuncNode() {
+    delete expr;
 }
