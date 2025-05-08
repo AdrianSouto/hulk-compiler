@@ -5,11 +5,23 @@
 #include <map>
 #include <vector>
 #include <string>
+#include <unordered_set>
+#include <unordered_map>
+#include <sstream>
+
+// Forward declarations
+class IContext;
 
 class ASTNode {
+protected:
+    std::string errorMessage;
 public:
     virtual void print(int indent = 0) const = 0;
+    virtual bool validate(IContext* context) = 0;
     virtual ~ASTNode() = default; // Destructor virtual
+    
+    const std::string& getErrorMessage() const { return errorMessage; }
+    void setErrorMessage(const std::string& message) { errorMessage = message; }
 };
 
 class ExpressionNode : public ASTNode {
@@ -25,6 +37,65 @@ public:
     ~StatementNode() override = default;
 };
 
+// IContext interface definition
+class IContext {
+public:
+    virtual bool IsDefined(const std::string& variable) = 0;
+    virtual bool IsDefined(const std::string& function, int args) = 0;
+    virtual bool Define(const std::string& variable) = 0;
+    virtual bool Define(const std::string& function, const std::vector<std::string>& args) = 0;
+    virtual IContext* CreateChildContext() = 0;
+    virtual ~IContext() = default;
+};
+
+// Context implementation
+class Context : public IContext {
+private:
+    IContext* parent;
+    std::unordered_set<std::string> variables;
+    std::unordered_map<std::string, std::vector<std::string>> functions;
+
+public:
+    Context() : parent(nullptr) {}
+    Context(IContext* parent) : parent(parent) {}
+
+    bool IsDefined(const std::string& variable) override {
+        return variables.find(variable) != variables.end() ||
+               (parent != nullptr && parent->IsDefined(variable));
+    }
+
+    bool IsDefined(const std::string& function, int args) override {
+        auto it = functions.find(function);
+        if (it != functions.end() && it->second.size() == args) {
+            return true;
+        }
+        return parent != nullptr && parent->IsDefined(function, args);
+    }
+
+    bool Define(const std::string& variable) override {
+        if (variables.find(variable) != variables.end()) {
+            return false;
+        }
+        variables.insert(variable);
+        return true;
+    }
+
+    bool Define(const std::string& function, const std::vector<std::string>& args) override {
+        auto it = functions.find(function);
+        if (it != functions.end() && it->second.size() == args.size()) {
+            return false;
+        }
+        functions[function] = args;
+        return true;
+    }
+
+    IContext* CreateChildContext() override {
+        return new Context(this);
+    }
+
+    ~Context() override = default;
+};
+
 class NumberNode : public ExpressionNode {
 public:
     int value;
@@ -33,6 +104,7 @@ public:
 
     int evaluate() const override;
     void print(int indent = 0) const override;
+    bool validate(IContext* context) override { return true; }
 };
 
 class StringLiteralNode : public ExpressionNode {
@@ -44,6 +116,7 @@ public:
     int evaluate() const override;
     std::string evaluateString() const override;
     void print(int indent = 0) const override;
+    bool validate(IContext* context) override { return true; }
 };
 
 class VariableNode : public ExpressionNode {
@@ -55,6 +128,7 @@ public:
     int evaluate() const override;
     std::string evaluateString() const override;
     void print(int indent = 0) const override;
+    bool validate(IContext* context) override;
 };
 
 class BinaryOperatorNode : public ExpressionNode {
@@ -67,6 +141,7 @@ public:
     virtual char getOperator() const = 0;
 
     void print(int indent = 0) const override;
+    bool validate(IContext* context) override;
 
     ~BinaryOperatorNode();
 };
@@ -121,6 +196,7 @@ public:
 
     int evaluate() const override;
     void print(int indent = 0) const override;
+    bool validate(IContext* context) override;
     ~FuncCallNode();
 };
 
@@ -132,6 +208,7 @@ public:
 
     void execute() const override;
     void print(int indent = 0) const override;
+    bool validate(IContext* context) override;
 
     ~PrintStatementNode();
 };
@@ -146,6 +223,7 @@ public:
 
     void execute() const override;
     void print(int indent = 0) const override;
+    bool validate(IContext* context) override;
     ~LetVarNode();
 };
 
@@ -159,6 +237,7 @@ public:
 
     void execute() const override;
     void print(int indent = 0) const override;
+    bool validate(IContext* context) override;
     ~DefFuncNode();
 };
 
@@ -169,8 +248,11 @@ extern std::map<std::string, std::pair<std::vector<std::string>, ExpressionNode*
 class Program {
 public:
     std::vector<StatementNode*> Statements;
+    std::string errorMessage;
 
     void execute() const;
+    bool validate();
+    const std::string& getErrorMessage() const { return errorMessage; }
     ~Program();
 };
 

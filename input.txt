@@ -1,2 +1,1 @@
-function square(x) => x * x;
-let num = 5 in print square(num);
+function id(x) => x + y ;

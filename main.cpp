@@ -5,7 +5,7 @@
 
 extern FILE* yyin;
 extern int yyparse();
-extern Program program; // Cambiado a Program
+extern Program program;
 
 int main(int argc, char* argv[]) {
     const char* filename = "../input.txt";
@@ -18,7 +18,19 @@ int main(int argc, char* argv[]) {
     yyparse();
 
     if (!program.Statements.empty()) {
-        program.execute(); // Ejecutar el programa
+        // Validate the program before executing
+        if (program.validate()) {
+            std::cout << "Program successfully validated!" << std::endl;
+            try {
+                program.execute(); // Execute the program
+            } catch (const std::exception& e) {
+                std::cerr << "Runtime error: " << e.what() << std::endl;
+                return 1;
+            }
+        } else {
+            std::cerr << "Program validation failed: " << program.getErrorMessage() << std::endl;
+            return 1;
+        }
     } else {
         std::cout << "No hay declaraciones en el programa." << std::endl;
     }
