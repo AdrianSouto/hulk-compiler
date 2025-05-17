@@ -1,4 +1,5 @@
 #include "ASTNode.hpp"
+#include "Visitor.hpp"
 #include <iostream>
 #include <map>
 #include <unordered_set>
@@ -6,6 +7,71 @@
 // Global symbol tables
 std::map<std::string, std::string> variables;
 std::map<std::string, std::pair<std::vector<std::string>, ExpressionNode*>> functions;
+
+// Implement accept methods for the visitor pattern
+void ExpressionNode::accept(Visitor* visitor) {
+    visitor->visit(this);
+}
+
+void StatementNode::accept(Visitor* visitor) {
+    visitor->visit(this);
+}
+
+void NumberNode::accept(Visitor* visitor) {
+    visitor->visit(this);
+}
+
+void StringLiteralNode::accept(Visitor* visitor) {
+    visitor->visit(this);
+}
+
+void VariableNode::accept(Visitor* visitor) {
+    visitor->visit(this);
+}
+
+void BinaryOperatorNode::accept(Visitor* visitor) {
+    visitor->visit(this);
+}
+
+void AdditionNode::accept(Visitor* visitor) {
+    visitor->visit(this);
+}
+
+void SubtractionNode::accept(Visitor* visitor) {
+    visitor->visit(this);
+}
+
+void MultiplicationNode::accept(Visitor* visitor) {
+    visitor->visit(this);
+}
+
+void DivisionNode::accept(Visitor* visitor) {
+    visitor->visit(this);
+}
+
+void ConcatenationNode::accept(Visitor* visitor) {
+    visitor->visit(this);
+}
+
+void FuncCallNode::accept(Visitor* visitor) {
+    visitor->visit(this);
+}
+
+void PrintStatementNode::accept(Visitor* visitor) {
+    visitor->visit(this);
+}
+
+void LetVarNode::accept(Visitor* visitor) {
+    visitor->visit(this);
+}
+
+void DefFuncNode::accept(Visitor* visitor) {
+    visitor->visit(this);
+}
+
+void Program::accept(Visitor* visitor) {
+    visitor->visit(this);
+}
 
 bool VariableNode::validate(IContext* context) {
     if (!context->IsDefined(identifier)) {

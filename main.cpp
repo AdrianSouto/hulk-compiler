@@ -1,4 +1,5 @@
 #include "ASTNode.hpp"
+#include "LLVMCodeGenVisitor.hpp"
 #include <iostream>
 #include <fstream>
 #include "parser.hpp"
@@ -21,6 +22,15 @@ int main(int argc, char* argv[]) {
         // Validate the program before executing
         if (program.validate()) {
             std::cout << "Program successfully validated!" << std::endl;
+            
+            // Generate LLVM IR code
+            LLVMCodeGenVisitor codeGen("hulk_module");
+            program.accept(&codeGen);
+            
+            // Print the generated IR code
+            std::cout << "\nGenerated LLVM IR:\n";
+            codeGen.dumpIR();
+            
             try {
                 program.execute(); // Execute the program
             } catch (const std::exception& e) {
